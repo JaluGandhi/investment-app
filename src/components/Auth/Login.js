@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
     APP_ENVIRONMENT, APP_PUBLIC_URL,
     CURRENT_YEAR, EMAIL_PATTERN,
-    REDUX_AUTH_LOGIN, SWAL_TITLE_ERROR,
+    REDUX_AUTH_LOGIN, SESSION_TOKENS, SESSION_USER, SWAL_TITLE_ERROR,
     SWAL_TYPE_ERROR
 } from '../../common/AppConstant';
 import { login } from "../../api/AuthApi";
@@ -23,7 +23,7 @@ const Login = () => {
     const [isPending, setIsPending] = useState(false);
 
     const dispatch = useDispatch();
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const [errors, setErrors] = useState({
         email: '',
@@ -52,20 +52,25 @@ const Login = () => {
 
                 if (res.status == 200 && res.data.isResetPassword) {
 
-                    history.push('/reset-password', { email: email })
-                    // history.push({
+                    navigate.push('/reset-password', { email: email })
+                    // navigate.push({
                     //     pathname: '/reset-password',
                     //     state: {email: email},
                     //   });
                     return;
                 }
 
+                localStorage.removeItem(SESSION_USER);
+                localStorage.removeItem(SESSION_TOKENS);
+                localStorage.setItem(SESSION_USER, JSON.stringify(res.data));
+                localStorage.setItem(SESSION_TOKENS, JSON.stringify(res.data.tokens));
+
                 dispatch({ type: REDUX_AUTH_LOGIN, payload: res.data });
 
-                // history.push('/dashboard')
+                // navigate.push('/dashboard')
                 window.location.href = '/dashboard';
 
-            }).catch((err) => { setIsPending(false); alert(SWAL_TITLE_ERROR, SWAL_TITLE_ERROR,err) })
+            }).catch((err) => { setIsPending(false); alert(SWAL_TITLE_ERROR, SWAL_TITLE_ERROR, err) })
         }
     }
 

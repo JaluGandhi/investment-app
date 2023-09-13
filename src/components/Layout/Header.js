@@ -1,14 +1,14 @@
 
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory } from 'react-router-dom'
-import { REDUX_AUTH_LOGOUT } from '../../common/AppConstant';
+import { useNavigate } from 'react-router-dom'
+import { REDUX_AUTH_LOGOUT, SESSION_TOKENS, SESSION_USER } from '../../common/AppConstant';
 import { useEffect, useState } from 'react';
 
 
 const Header = () => {
 
     const publicURL = process.env.PUBLIC_URL;
-    const history = useHistory();
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const [refreshLastLogin, setRefreshLastLogin] = useState(true)
@@ -51,8 +51,11 @@ const Header = () => {
     const logoutClick = (e) => {
         e.preventDefault();
 
+        localStorage.removeItem(SESSION_USER);
+        localStorage.removeItem(SESSION_TOKENS);
+
         dispatch({ type: REDUX_AUTH_LOGOUT });
-        history.push('/login')
+        navigate.push('/login')
     }
 
     return (

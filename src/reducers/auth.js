@@ -22,10 +22,10 @@ const auth = (state = initialState, action) => {
   switch (type) {
     case REDUX_AUTH_LOGIN:
       {
-        localStorage.removeItem(SESSION_USER);
-        localStorage.removeItem(SESSION_TOKENS);
-        localStorage.setItem(SESSION_USER, JSON.stringify(payload));
-        localStorage.setItem(SESSION_TOKENS, JSON.stringify(payload.tokens));
+        // localStorage.removeItem(SESSION_USER);
+        // localStorage.removeItem(SESSION_TOKENS);
+        // localStorage.setItem(SESSION_USER, JSON.stringify(payload));
+        // localStorage.setItem(SESSION_TOKENS, JSON.stringify(payload.tokens));
         return {
           ...state,
           isAuthenticated: true,
@@ -35,8 +35,8 @@ const auth = (state = initialState, action) => {
       }
     case REDUX_AUTH_LOGOUT:
       {
-        localStorage.removeItem(SESSION_USER);
-        localStorage.removeItem(SESSION_TOKENS);
+        // localStorage.removeItem(SESSION_USER);
+        // localStorage.removeItem(SESSION_TOKENS);
         return {
           ...state,
           isAuthenticated: false,

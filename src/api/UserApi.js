@@ -1,13 +1,14 @@
+import { api } from "../common/AppCommon";
 import {
     API_CONTENT_TYPE, API_USER_ADD_USER,
     API_USER_DELETE_USER, API_USER_GET_USER,
     API_USER_UPDATE_USER,
     SESSION_TOKENS
 } from "../common/AppConstant";
-import { api } from "../common/AppCommon";
+// import api from "./AxiosConfig";
 
 
-api.defaults.headers.common["Content-Type"] = API_CONTENT_TYPE;
+// api.defaults.headers.common["Content-Type"] = API_CONTENT_TYPE;
 var tokens = JSON.parse(localStorage.getItem(SESSION_TOKENS));
 
 var tokenHeader = { Authorization: (tokens == null ? '' : `Bearer ${tokens.accessToken}`) }

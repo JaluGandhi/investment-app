@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom';
 import {
     APP_PUBLIC_URL,
     APP_ROUTE_DASHBOARD_PATH, SWAL_TITLE_ERROR,
@@ -8,56 +8,60 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { UnAuthorisedUserHandler, alert } from '../../common/AppCommon';
-import { addBankAccount, deleteBankAccount, getBankAccounts, updateBankAccount } from '../../api/BankAccountApi';
 import { getUsers } from '../../api/UserApi';
+import { getBankAccounts } from '../../api/BankAccountApi';
+import { addDematAccount, deleteDematAccount, getBrokers, getBrokersByDepositoryParticipantId, getDematAccounts, getDepositoryParticipants, updateDematAccount } from '../../api/DematApi';
 
-
-
-const BankAccount = () => {
-
+const DematAccount = () => {
 
     const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-    const [header, setHeader] = useState('Add Bank Account');
+    const [header, setHeader] = useState('Add Demat Account');
     const [isPending, setIsPending] = useState(false);
     const [refreshTable, setRefreshTable] = useState(true);
+    const [dematAccounts, setDematAccounts] = useState([]);
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
     const [users, setUsers] = useState([]);
-    const [accounts, setAccounts] = useState([]);
     const [ddlUser, setDdlUser] = useState(0);
+
+    const [bankAccounts, setBankAccounts] = useState([]);
+    const [ddlBankAccount, setDdlBankAccount] = useState(0);
+
+    const [depositoryParticipants, setDepositoryParticipants] = useState([]);
+    const [ddlDepositoryParticipant, setDdlDepositoryParticipant] = useState(0);
+
+    const [brokers, setBrokers] = useState([]);
+    const [ddlBroker, setDdlBroker] = useState(0);
+    const [refreshBrokerDdl, setRefreshBrokerDdl] = useState(false);
+
     const [ddlIsAadharCardLinked, setDdlIsAadharCardLinked] = useState(false);
     const [ddlIsPanCardLinked, setDdlIsPanCardLinked] = useState(false);
 
     const [formData, setFormData] = useState({
         id: 0,
         userId: 0,
-        bankName: '',
-        shortName: '',
-        accountNumber: '',
-        accountType: '',
+        bankAccountId: 0,
+        depositoryParticipantId: 0,
+        brokerId: 0,
         firstHolder: '',
         secondHolder: '',
         nominee: '',
-        ifscCode: '',
-        address: '',
+        customerId: '',
+        boId: '',
+        dematId: '',
         isAadharCardLinked: false,
         isPanCardLinked: false,
-        micrCode: '',
         createdBy: user ? user.userId : 1
     });
+
     const [errors, setErrors] = useState({
-        bankName: '',
-        shortName: '',
-        accountNumber: '',
-        accountType: '',
         firstHolder: '',
         secondHolder: '',
         nominee: '',
-        ifscCode: '',
-        address: '',
-        micrCode: '',
+        customerId: '',
+        boId: '',
     });
 
     useEffect(() => {
@@ -80,10 +84,10 @@ const BankAccount = () => {
 
                 if (users.length > 0) {
 
-                    var userIdToFetchBankAccounts = ddlUser == 0 ? users[0].userId : ddlUser;
-                    setDdlUser(userIdToFetchBankAccounts);
+                    var userIdToFetchDependandAccounts = ddlUser == 0 ? users[0].userId : ddlUser;
+                    setDdlUser(userIdToFetchDependandAccounts);
 
-                    getBankAccounts(userIdToFetchBankAccounts).then((res) => {
+                    getDematAccounts(userIdToFetchDependandAccounts).then((res) => {
                         if (res.status != 200) {
 
                             if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
@@ -92,26 +96,111 @@ const BankAccount = () => {
                             return;
                         }
 
-                        setAccounts(res.data);
+                        setDematAccounts(res.data);
                     }).catch((err) => alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, err.message));
+
+                    getBankAccounts(userIdToFetchDependandAccounts).then((res) => {
+                        if (res.status != 200) {
+
+                            if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
+
+                            alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, res.message);
+                            return;
+                        }
+
+                        var records = res.data;
+                        if (records.length > 0) {
+                            setDdlBankAccount(records[0].id);
+                        }
+
+                        setBankAccounts(records);
+                    }).catch((err) => alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, err.message));
+
                 }
 
             }).catch((err) => alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, err.message));
 
+            getDepositoryParticipants().then((res) => {
+                if (res.status != 200) {
 
+                    if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
+
+                    alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, res.message);
+                    return;
+                }
+
+
+                var records = res.data;
+                if (records.length > 0) {
+                    setDdlDepositoryParticipant(records[0].id);
+                }
+
+                setDepositoryParticipants(records);
+
+                getBrokers(records[0].id);
+
+
+
+            }).catch((err) => alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, err.message));
         }
 
         setRefreshTable(false)
 
     }, [refreshTable]);
 
+
+    useEffect(() => {
+
+        if (refreshBrokerDdl) {
+
+            getBrokers(ddlDepositoryParticipant);
+
+        }
+        setRefreshBrokerDdl(false);
+
+    }, [refreshBrokerDdl])
+
+
+    const getBrokers = (depositoryParticipantId) => {
+        getBrokersByDepositoryParticipantId(depositoryParticipantId).then((res) => {
+            if (res.status != 200) {
+
+                if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
+
+                alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, res.message);
+                return;
+            }
+
+            var records = res.data;
+            if (records.length > 0)
+                setDdlBroker(records[0].id);
+            else
+                setDdlBroker(0);
+
+            setBrokers(records);
+        }).catch((err) => alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, err.message));
+    }
+
+
     const ddlUserChange = (e) => {
         setDdlUser(e.target.value);
 
-        setHeader('Add Bank Account');
+        setHeader('Add Demat Account');
         resetForm();
 
         setRefreshTable(true);
+    }
+
+    const ddlBankAccountChange = (e) => {
+        setDdlBankAccount(e.target.value);
+    }
+
+    const ddlDepositoryParticipantChange = (e) => {
+        setDdlDepositoryParticipant(e.target.value);
+        setRefreshBrokerDdl(true);
+    }
+    const ddlBrokerChange = (e) => {
+        setDdlBroker(e.target.value);
     }
 
     const ddlAadharCardLinkedChange = (e) => {
@@ -144,13 +233,24 @@ const BankAccount = () => {
         if (isValid()) {
             setIsPending(true);
 
+            var dematId = '';
+
+            var selectedDp = depositoryParticipants.find(a => a.id == ddlDepositoryParticipant);
+            if (selectedDp) {
+                dematId = `${selectedDp.depositoryParticipantId}${formData.boId}`
+            }
+
             formData.userId = ddlUser;
+            formData.bankAccountId = ddlBankAccount;
+            formData.depositoryParticipantId = ddlDepositoryParticipant;
+            formData.brokerId = ddlBroker;
+            formData.dematId = dematId;
             formData.isAadharCardLinked = ddlIsAadharCardLinked;
             formData.isPanCardLinked = ddlIsPanCardLinked;
 
             if (formData.id == 0) {
 
-                addBankAccount(formData).then((res) => {
+                addDematAccount(formData).then((res) => {
 
                     setIsPending(false);
 
@@ -161,14 +261,14 @@ const BankAccount = () => {
                         return;
                     }
 
-                    alert(SWAL_TYPE_SUCCESS, SWAL_TITLE_SUCCESS, 'Bank Account added successfully');
+                    alert(SWAL_TYPE_SUCCESS, SWAL_TITLE_SUCCESS, 'Demat Account added successfully');
                     resetPage();
                 }).catch((err) => { setIsPending(false); alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, err.message) })
 
             }
             else {
 
-                updateBankAccount(formData).then((res) => {
+                updateDematAccount(formData).then((res) => {
                     setIsPending(false);
 
                     if (res.status != 200) {
@@ -178,7 +278,7 @@ const BankAccount = () => {
                         return;
                     }
 
-                    alert(SWAL_TYPE_SUCCESS, SWAL_TITLE_SUCCESS, 'Bank Account updated successfully');
+                    alert(SWAL_TYPE_SUCCESS, SWAL_TITLE_SUCCESS, 'Demat Account updated successfully');
                     resetPage();
 
                 }).catch((err) => { setIsPending(false); alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, err.message) })
@@ -191,47 +291,27 @@ const BankAccount = () => {
     const isValid = () => {
 
         const newErrors = {
-            bankName: '',
-            shortName: '',
-            accountNumber: '',
-            accountType: '',
             firstHolder: '',
             secondHolder: '',
             nominee: '',
-            ifscCode: '',
-            address: '',
-            micrCode: '',
+            customerId: '',
+            boId: '',
         };
 
-        if (formData.bankName.trim() === '')
-            newErrors.bankName = 'Bank Name is required.';
-
-        if (formData.shortName.trim() === '')
-            newErrors.shortName = 'Short Name is required.';
-
-        if (formData.accountNumber.length > 8)
-            newErrors.accountNumber = 'Account number must be grater than 8 chracters';
-
-        if (formData.accountType.trim() === '')
-            newErrors.accountType = 'Account type is required.';
-
         if (formData.firstHolder.trim() === '')
-            newErrors.firstHolder = 'First holder is required.';
+            newErrors.firstHolder = 'First Holder is required.';
 
-        if (formData.secondHolder.trim() === '')
-            newErrors.secondHolder = 'Second holder is required.';
+        // if (formData.secondHolder.trim() === '')
+        //     newErrors.secondHolder = 'Second Holder is required.';
 
         if (formData.nominee.trim() === '')
             newErrors.nominee = 'Nominee is required.';
 
-        if (formData.ifscCode.trim() === '')
-            newErrors.ifscCode = 'IFSC Code is required.';
+        if (formData.customerId.trim() === '')
+            newErrors.customerId = 'Customer Id is required.';
 
-        if (formData.address.trim() === '')
-            newErrors.address = 'Address is required.';
-
-        if (formData.micrCode.trim() === '')
-            newErrors.micrCode = 'MICR Code is required.';
+        if (formData.boId.trim() === '')
+            newErrors.boId = 'Bo Id is required.';
 
 
         setErrors(newErrors);
@@ -241,27 +321,24 @@ const BankAccount = () => {
 
     const editClick = (e, obj) => {
         e.preventDefault();
-        setHeader('Update Bank Details')
+        setHeader('Update Demat Details')
         clearErrors();
 
         setFormData({
             id: obj.id,
             userId: obj.userId,
-            bankName: obj.bankName,
-            shortName: obj.shortName,
-            accountNumber: obj.accountNumber,
-            accountType: obj.accountType,
             firstHolder: obj.firstHolder,
             secondHolder: obj.secondHolder,
             nominee: obj.nominee,
-            ifscCode: obj.ifscCode,
-            address: obj.address,
-            isAadharCardLinked: obj.isAadharCardLinked,
-            isPanCardLinked: obj.isPanCardLinked,
-            micrCode: obj.micrCode,
+            customerId: obj.customerId,
+            boId: obj.boId,
+            dematId: obj.dematId,
             createdBy: user ? user.userId : 1
         });
 
+        setDdlBroker(obj.brokerId);
+        setDdlDepositoryParticipant(obj.depositoryParticipantId);
+        setDdlBankAccount(obj.bankAccountId);
         setDdlIsAadharCardLinked(obj.isAadharCardLinked);
         setDdlIsPanCardLinked(obj.isPanCardLinked);
     }
@@ -269,7 +346,7 @@ const BankAccount = () => {
     const deleteClick = (e, obj) => {
         e.preventDefault();
 
-        deleteBankAccount(obj.id).then((res) => {
+        deleteDematAccount(obj.id).then((res) => {
 
             if (res.status != 200) {
                 if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
@@ -278,7 +355,7 @@ const BankAccount = () => {
                 return;
             }
 
-            alert(SWAL_TYPE_SUCCESS, SWAL_TITLE_SUCCESS, 'Bank deleted successfully');
+            alert(SWAL_TYPE_SUCCESS, SWAL_TITLE_SUCCESS, 'Demat account deleted successfully');
 
             setRefreshTable(true);
 
@@ -286,23 +363,38 @@ const BankAccount = () => {
     }
 
     const resetForm = () => {
+
+        var defaultText = '';
+        // var selectedUser = users.find(a=> a.userId == ddlUser);
+        // if(selectedUser){
+        //     defaultText = `${selectedUser.firstName} ${selectedUser.middleName} ${selectedUser.lastName}`
+        // }
+
+        // console.log('defaultText => ' + defaultText);
+
         setFormData({
             id: 0,
             userId: 0,
-            bankName: '',
-            shortName: '',
-            accountNumber: '',
-            accountType: '',
-            firstHolder: '',
+            bankAccountId: 0,
+            depositoryParticipantId: 0,
+            brokerId: 0,
+            firstHolder: defaultText,
             secondHolder: '',
             nominee: '',
-            ifscCode: '',
-            address: '',
+            customerId: '',
+            boId: '',
+            dematId: '',
             isAadharCardLinked: false,
             isPanCardLinked: false,
-            micrCode: '',
             createdBy: user ? user.userId : 1
         });
+
+
+
+
+        setDdlBroker(0);
+        setDdlDepositoryParticipant(0);
+        setDdlBankAccount(0);
         setDdlIsAadharCardLinked(false);
         setDdlIsPanCardLinked(false);
 
@@ -310,7 +402,7 @@ const BankAccount = () => {
     }
 
     const resetPage = () => {
-        setHeader('Add Bank Account');
+        setHeader('Add Demat Account');
 
         resetForm();
 
@@ -319,23 +411,16 @@ const BankAccount = () => {
 
     const clearErrors = () => {
         const newErrors = {
-            bankName: '',
-            shortName: '',
-            accountNumber: '',
-            accountType: '',
-            firstHolder: '',
-            secondHolder: '',
-            nominee: '',
-            ifscCode: '',
-            address: '',
-            micrCode: '',
+            investorName: '',
+            customerId: '',
+            boId: '',
         };
 
         setErrors(newErrors);
     }
 
     const btnClearClick = () => {
-        setHeader('Add Bank Account');
+        setHeader('Add Demat Account');
         resetForm();
     }
 
@@ -345,10 +430,10 @@ const BankAccount = () => {
         <div className='main-content'>
             <section className='section'>
                 <div className='section-header'>
-                    <h1>Bank Accounts</h1>
+                    <h1>Demat Accounts</h1>
                     <div className='section-header-breadcrumb'>
                         <div className='breadcrumb-item active'><Link to={APP_ROUTE_DASHBOARD_PATH}>Dashboard</Link></div>
-                        <div className='breadcrumb-item'>Bank Accounts</div>
+                        <div className='breadcrumb-item'>Demat Accounts</div>
                     </div>
                 </div>
 
@@ -357,7 +442,7 @@ const BankAccount = () => {
                         <div className='col-12 col-md-6 col-lg-12'>
                             <div className='card'>
                                 <div className='card-header'>
-                                    <h4>Bank Account</h4>
+                                    <h4>Demat Account</h4>
                                 </div>
                                 <div className='card-body'>
 
@@ -381,48 +466,64 @@ const BankAccount = () => {
                                     <form onSubmit={formSubmit} className='needs-validation' autoComplete='off'>
                                         <div className='form-group'>
                                             <div className='row'>
+
+                                                <div className='col-md-3'>
+                                                    <label>Depository Participant <span style={{ color: '#dc3545' }}>*</span></label>
+                                                    <select name='ddlDepositoryParticipant' value={ddlDepositoryParticipant} onChange={(e) => ddlDepositoryParticipantChange(e)} className='form-control selectric'>
+                                                        {depositoryParticipants && depositoryParticipants.length > 0 && depositoryParticipants.map((obj, index) => (
+
+                                                            <option key={obj.id} value={obj.id}>{`${obj.depositoryParticipantId} - ${obj.depositoryParticipantName}`}</option>
+                                                        ))}
+
+                                                        {depositoryParticipants.length == 0 &&
+                                                            <option key={ddlDepositoryParticipant}>No Depository Participant Found</option>
+                                                        }
+                                                    </select>
+                                                </div>
+
+                                                <div className='col-md-3'>
+                                                    <label>Broker <span style={{ color: '#dc3545' }}>*</span></label>
+                                                    <select name='ddlBroker' value={ddlBroker} onChange={(e) => ddlBrokerChange(e)} className='form-control selectric'>
+                                                        {brokers && brokers.length > 0 && brokers.map((obj, index) => (
+
+                                                            <option key={obj.id} value={obj.id}>{`${obj.code} - ${obj.name}`}</option>
+                                                        ))}
+
+                                                        {brokers.length == 0 &&
+                                                            <option key={ddlBroker}>No Broker Found</option>
+                                                        }
+                                                    </select>
+                                                </div>
+
                                                 <div className='col-md-3'>
                                                     <label>Bank Name <span style={{ color: '#dc3545' }}>*</span></label>
-                                                    <input type='text' name='bankName' placeholder='Enter Bank name' value={formData.bankName} onChange={handleInputChange}
-                                                        className='form-control' />
-                                                    {errors.bankName && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.bankName}</div>}
+                                                    <select name='ddlBankAccount' value={ddlBankAccount} onChange={(e) => ddlBankAccountChange(e)} className='form-control selectric'>
+                                                        {bankAccounts && bankAccounts.length > 0 && bankAccounts.map((obj, index) => (
+
+                                                            <option key={obj.id} value={obj.id}>{`${obj.shortName} - XXXXX${obj.accountNumber.substr(obj.accountNumber.length - 4, obj.accountNumber.length)}`}</option>
+                                                        ))}
+
+                                                        {bankAccounts.length == 0 &&
+                                                            <option key={ddlBankAccount}>No Bank Found</option>
+                                                        }
+                                                    </select>
                                                 </div>
 
                                                 <div className='col-md-3'>
-                                                    <label>Short Name <span style={{ color: '#dc3545' }}>*</span></label>
-                                                    <input type='text' name='shortName' placeholder='Enter Short Name' value={formData.shortName} onChange={handleInputChange}
+                                                    <label>First Holder <span style={{ color: '#dc3545' }}>*</span></label>
+                                                    <input type='text' name='firstHolder' placeholder='Enter First Holder' value={formData.firstHolder} onChange={handleInputChange}
                                                         className='form-control' />
-                                                    {errors.shortName && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.shortName}</div>}
-                                                </div>
-
-                                                <div className='col-md-3'>
-                                                    <label>Account Number <span style={{ color: '#dc3545' }}>*</span></label>
-                                                    <input type='text' name='accountNumber' placeholder='Enter Account number' value={formData.accountNumber} onChange={handleNumberChange}
-                                                        className='form-control' />
-                                                    {errors.accountNumber && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.accountNumber}</div>}
-                                                </div>
-
-                                                <div className='col-md-3'>
-                                                    <label>Account Type <span style={{ color: '#dc3545' }}>*</span></label>
-                                                    <input type='text' name='accountType' placeholder='Enter Account type' value={formData.accountType} onChange={handleInputChange}
-                                                        className='form-control' />
-                                                    {errors.accountType && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.accountType}</div>}
+                                                    {errors.firstHolder && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.firstHolder}</div>}
                                                 </div>
 
                                             </div>
                                         </div>
                                         <div className='form-group'>
                                             <div className='row'>
-                                                <div className='col-md-3'>
-                                                    <label>First Holder <span style={{ color: '#dc3545' }}>*</span></label>
-                                                    <input type='text' name='firstHolder' placeholder='Enter First holder' value={formData.firstHolder} onChange={handleInputChange}
-                                                        className='form-control' />
-                                                    {errors.firstHolder && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.firstHolder}</div>}
-                                                </div>
 
                                                 <div className='col-md-3'>
-                                                    <label>Second Holder <span style={{ color: '#dc3545' }}>*</span></label>
-                                                    <input type='text' name='secondHolder' placeholder='Enter Second holder' value={formData.secondHolder} onChange={handleInputChange}
+                                                    <label>Second Holder </label>
+                                                    <input type='text' name='secondHolder' placeholder='Enter Second Holder' value={formData.secondHolder} onChange={handleInputChange}
                                                         className='form-control' />
                                                     {errors.secondHolder && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.secondHolder}</div>}
                                                 </div>
@@ -435,23 +536,24 @@ const BankAccount = () => {
                                                 </div>
 
                                                 <div className='col-md-3'>
-                                                    <label>MICR Code <span style={{ color: '#dc3545' }}>*</span></label>
-                                                    <input type='text' name='micrCode' placeholder='Enter MICR Code' value={formData.micrCode} onChange={handleNumberChange}
+                                                    <label>Customer Id <span style={{ color: '#dc3545' }}>*</span></label>
+                                                    <input type='text' name='customerId' placeholder='Enter Customer Id' value={formData.customerId} onChange={handleInputChange}
                                                         className='form-control' />
-                                                    {errors.micrCode && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.micrCode}</div>}
+                                                    {errors.customerId && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.customerId}</div>}
+                                                </div>
+
+                                                <div className='col-md-3'>
+                                                    <label>BO Id <span style={{ color: '#dc3545' }}>*</span></label>
+                                                    <input type='text' name='boId' placeholder='Enter BO Id' value={formData.boId} onChange={handleNumberChange}
+                                                        className='form-control' />
+                                                    {errors.boId && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.boId}</div>}
                                                 </div>
 
                                             </div>
                                         </div>
+
                                         <div className='form-group'>
                                             <div className='row'>
-
-                                                <div className='col-md-3'>
-                                                    <label>IFSC Code <span style={{ color: '#dc3545' }}>*</span></label>
-                                                    <input type='text' name='ifscCode' placeholder='Enter IFSC Code' value={formData.ifscCode} onChange={handleInputChange}
-                                                        className='form-control' />
-                                                    {errors.ifscCode && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.ifscCode}</div>}
-                                                </div>
 
                                                 <div className='col-md-3'>
                                                     <label>Aadhar card linked  <span style={{ color: '#dc3545' }}>*</span></label>
@@ -467,16 +569,6 @@ const BankAccount = () => {
                                                         <option value='true'>Yes</option>
                                                         <option value='false'>No</option>
                                                     </select>
-                                                </div>
-
-                                                <div className='col-md-3'>
-                                                    <label>Bank Address <span style={{ color: '#dc3545' }}>*</span></label>
-                                                    <textarea name='address' placeholder='Enter Adderess' value={formData.address} onChange={handleInputChange}
-                                                        className='form-control'>
-
-                                                    </textarea>
-
-                                                    {errors.address && <div className='invalid-feedback' style={{ display: 'block' }}>{errors.address}</div>}
                                                 </div>
 
                                             </div>
@@ -498,29 +590,33 @@ const BankAccount = () => {
                                             <thead>
                                                 <tr>
                                                     <th>Sr. No</th>
-                                                    <th>Bank Name</th>
-                                                    <th>Short Name</th>
-                                                    <th>Account Number</th>
-                                                    <th>AccountType</th>
                                                     <th>Account Holders</th>
+                                                    <th>Broker</th>
+                                                    <th>Bank Name</th>
+                                                    <th>DP Id</th>
+                                                    <th>Bo Id</th>
+                                                    <th>Demat Id</th>
+                                                    <th>Customer Id</th>
                                                     <th>Aadhar Linked</th>
                                                     <th>PAN Linked</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {accounts && accounts.length > 0 && accounts.map((obj, index) => (
+                                                {dematAccounts && dematAccounts.length > 0 && dematAccounts.map((obj, index) => (
                                                     <tr key={obj.id}>
                                                         <th scope='row'>{index + 1}</th>
-                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.bankName}>{obj.bankName}</td>
-                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.shortName} >{obj.shortName}</td>
-                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.accountNumber} >{obj.accountNumber}</td>
-                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.accountType} >{obj.accountType}</td>
                                                         <td>
                                                             <img alt='image' src={APP_PUBLIC_URL + 'img/avatar/avatar-1.png'} className='rounded-circle' width='35' data-placement='bottom' data-toggle='tooltip' title={`FH: ${obj.firstHolder}`} />
                                                             <img alt='image' src={APP_PUBLIC_URL + 'img/avatar/avatar-4.png'} className='rounded-circle' width='35' data-placement='bottom' data-toggle='tooltip' title={`SH: ${obj.secondHolder}`} /> &nbsp;&nbsp;
                                                             <img alt='image' src={APP_PUBLIC_URL + 'img/avatar/avatar-5.png'} className='rounded-circle' width='35' data-placement='bottom' data-toggle='tooltip' title={`N: ${obj.nominee}`} />
                                                         </td>
+                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.broker}>{obj.broker}</td>
+                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.bank} >{obj.bank}</td>
+                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.depositoryParticipant} >{obj.depositoryParticipant}</td>
+                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.boId} >{obj.boId}</td>
+                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.dematId} >{obj.dematId}</td>
+                                                        <td data-toggle='tooltip' data-placement='bottom' title={obj.customerId} >{obj.customerId}</td>
                                                         <td data-toggle='tooltip' data-placement='bottom' title={obj.isAadharCardLinked ? 'Yes' : 'No'}><div className={`badge ${obj.isAadharCardLinked ? 'badge-success' : 'badge-danger'}`}>{obj.isAadharCardLinked ? 'Yes' : 'No'}</div></td>
                                                         <td data-toggle='tooltip' data-placement='bottom' title={obj.isPanCardLinked ? 'Yes' : 'No'}><div className={`badge ${obj.isPanCardLinked ? 'badge-success' : 'badge-danger'}`}>{obj.isPanCardLinked ? 'Yes' : 'No'}</div></td>
                                                         <td>
@@ -528,9 +624,9 @@ const BankAccount = () => {
                                                         </td>
                                                     </tr>
                                                 ))}
-                                                {accounts.length == 0 &&
+                                                {dematAccounts.length == 0 &&
                                                     <tr scope='row'>
-                                                        <td colSpan='9' style={{ textAlign: 'center' }}>Please wait... We retriving the records</td>
+                                                        <td colSpan='11' style={{ textAlign: 'center' }}>Please wait... We retriving the records</td>
                                                     </tr>
                                                 }
                                             </tbody>
@@ -545,6 +641,7 @@ const BankAccount = () => {
         </div >
 
     );
+
 }
 
-export default BankAccount;
+export default DematAccount;

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useHistory } from 'react-router-dom'
-import { Link } from 'react-router-dom/cjs/react-router-dom.min'
+import { Link, useNavigate } from 'react-router-dom'
 import { resetPassword } from '../../api/AuthApi';
 import { APP_PUBLIC_URL, CURRENT_YEAR, EMAIL_PATTERN } from '../../common/AppConstant';
 
@@ -10,7 +9,7 @@ const ResetPassword = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isPending, setIsPending] = useState(false);
-    const history = useHistory();
+    const navigate = useNavigate();
 
 
     const [errors, setErrors] = useState({
@@ -40,7 +39,7 @@ const ResetPassword = () => {
                     return;
                 }
 
-                history.push('/login')
+                navigate.push('/login')
 
             }).catch((err) => { setIsPending(false); alert(err) })
         }

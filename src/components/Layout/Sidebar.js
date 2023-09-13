@@ -4,10 +4,22 @@ import { useLocation } from "react-router-dom";
 import {
     APP_ROUTE_BANK_ACCOUNT,
     APP_ROUTE_BANK_ACCOUNT_PATH,
+    APP_ROUTE_BROKER,
+    APP_ROUTE_BROKER_PATH,
     APP_ROUTE_DASHBOARD,
     APP_ROUTE_DASHBOARD_PATH,
+    APP_ROUTE_DEMAT_ACCOUNT,
+    APP_ROUTE_DEMAT_ACCOUNT_PATH,
+    APP_ROUTE_DEPOSITORY_PARTICIPANT,
+    APP_ROUTE_DEPOSITORY_PARTICIPANT_PATH,
+    APP_ROUTE_SCRIPT,
+    APP_ROUTE_SCRIPT_PATH,
+    APP_ROUTE_SCRIPT_TRANSACTION,
+    APP_ROUTE_SCRIPT_TRANSACTION_PATH,
     APP_ROUTE_USERS,
-    APP_ROUTE_USERS_PATH
+    APP_ROUTE_USERS_PATH,
+    APP_ROUTE_USER_SCRIPT,
+    APP_ROUTE_USER_SCRIPT_PATH
 } from '../../common/AppConstant';
 
 const Sidebar = () => {
@@ -40,23 +52,49 @@ const Sidebar = () => {
                     <li className='menu-header'>Dashboard</li>
                     <li className={`dropdown ${route === APP_ROUTE_DASHBOARD ? 'active' : ''}`}>
                         <a href='#' className='nav-link has-dropdown'><i className='fas fa-fire'></i><span>Dashboard</span></a>
-                        <ul className='dropdown-menu' style={route === APP_ROUTE_DASHBOARD ? {display:'block'} : {display:'none'}}>
+                        <ul className='dropdown-menu' style={route === APP_ROUTE_DASHBOARD ? { display: 'block' } : { display: 'none' }}>
                             <li className={`${route === APP_ROUTE_DASHBOARD ? 'active' : ''}`} ><Link className='nav-link' to={APP_ROUTE_DASHBOARD_PATH}>My Dashboard</Link></li>
                         </ul>
                     </li>
 
-                    <li className='menu-header'>Bank Accounts</li>
+                    <li className='menu-header'>Accounts</li>
                     <li className={`dropdown ${route === APP_ROUTE_BANK_ACCOUNT ? 'active' : ''}`}>
                         <a href='#' className='nav-link has-dropdown'><i className='fas fa-fire'></i><span>Bank Accounts</span></a>
-                        <ul className='dropdown-menu' style={route === APP_ROUTE_BANK_ACCOUNT ? {display:'block'} : {display:'none'}}>
+                        <ul className='dropdown-menu' style={route === APP_ROUTE_BANK_ACCOUNT ? { display: 'block' } : { display: 'none' }}>
                             <li className={`${route === APP_ROUTE_BANK_ACCOUNT ? 'active' : ''}`} ><Link className='nav-link' to={APP_ROUTE_BANK_ACCOUNT_PATH}>Accounts</Link></li>
+                        </ul>
+                    </li>
+
+                    <li className={`dropdown ${(route === APP_ROUTE_BROKER ||
+                        route === APP_ROUTE_DEPOSITORY_PARTICIPANT ||
+                        route === APP_ROUTE_DEMAT_ACCOUNT) ? 'active' : ''}`}>
+                        <a href='#' className='nav-link has-dropdown'><i className='fas fa-fire'></i><span>Demat Accounts</span></a>
+                        <ul className='dropdown-menu' style={(route === APP_ROUTE_BROKER ||
+                            route === APP_ROUTE_DEPOSITORY_PARTICIPANT ||
+                            route === APP_ROUTE_DEMAT_ACCOUNT) ? { display: 'block' } : { display: 'none' }}>
+                            <li className={`${route === APP_ROUTE_DEMAT_ACCOUNT ? 'active' : ''}`} ><Link className='nav-link' to={APP_ROUTE_DEMAT_ACCOUNT_PATH}>Demat Accounts</Link></li>
+                            <li className={`${route === APP_ROUTE_BROKER ? 'active' : ''}`} ><Link className='nav-link' to={APP_ROUTE_BROKER_PATH}>Brokers</Link></li>
+                            <li className={`${route === APP_ROUTE_DEPOSITORY_PARTICIPANT ? 'active' : ''}`} ><Link className='nav-link' to={APP_ROUTE_DEPOSITORY_PARTICIPANT_PATH}>Depository Participants</Link></li>
+                        </ul>
+                    </li>
+
+                    <li className={`dropdown ${(route === APP_ROUTE_SCRIPT ||
+                        route === APP_ROUTE_USER_SCRIPT ||
+                        route === APP_ROUTE_SCRIPT_TRANSACTION) ? 'active' : ''}`}>
+                        <a href='#' className='nav-link has-dropdown'><i className='fas fa-fire'></i><span>Script</span></a>
+                        <ul className='dropdown-menu' style={(route === APP_ROUTE_SCRIPT ||
+                            route === APP_ROUTE_USER_SCRIPT ||
+                            route === APP_ROUTE_SCRIPT_TRANSACTION) ? { display: 'block' } : { display: 'none' }}>
+                            <li className={`${route === APP_ROUTE_SCRIPT ? 'active' : ''}`} ><Link className='nav-link' to={APP_ROUTE_SCRIPT_PATH}>Scripts</Link></li>
+                            <li className={`${route === APP_ROUTE_USER_SCRIPT ? 'active' : ''}`} ><Link className='nav-link' to={APP_ROUTE_USER_SCRIPT_PATH}>User Scripts</Link></li>
+                            <li className={`${route === APP_ROUTE_SCRIPT_TRANSACTION ? 'active' : ''}`} ><Link className='nav-link' to={APP_ROUTE_SCRIPT_TRANSACTION_PATH}>Script Transation</Link></li>
                         </ul>
                     </li>
 
                     <li className='menu-header'>App Settings</li>
                     <li className={`dropdown ${route === APP_ROUTE_USERS ? 'active' : ''}`}>
                         <a href='#' className='nav-link has-dropdown'><i className='fas fa-fire'></i><span>Settings</span></a>
-                        <ul className='dropdown-menu' style={route === APP_ROUTE_USERS ? {display:'block'} : {display:'none'}}>
+                        <ul className='dropdown-menu' style={route === APP_ROUTE_USERS ? { display: 'block' } : { display: 'none' }}>
                             <li className={`dropdown ${route === APP_ROUTE_USERS ? 'active' : ''}`}><Link to={APP_ROUTE_USERS_PATH} className='nav-link'>App Users</Link></li>
                         </ul>
                     </li>

@@ -1,8 +1,9 @@
-import { API_CONTENT_TYPE, API_USER_FORGOT_PASSWORD, API_USER_LOGIN, API_USER_RESET_PASSWORD } from "../common/AppConstant";
 import { api } from "../common/AppCommon";
+import { API_CONTENT_TYPE, API_USER_FORGOT_PASSWORD, API_USER_LOGIN, API_USER_RESET_PASSWORD } from "../common/AppConstant";
+// import api from "./AxiosConfig";
 
 
-api.defaults.headers.common["Content-Type"] = API_CONTENT_TYPE;
+
 
 export const login = async (data) => {
     var result = null;

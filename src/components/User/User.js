@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom/cjs/react-router-dom.min';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { addUser, deleteUser, getUsers, updateUser } from '../../api/UserApi';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,7 +8,6 @@ import {
     SWAL_TYPE_ERROR, SWAL_TYPE_SUCCESS
 } from '../../common/AppConstant';
 import { forgotPassword } from '../../api/AuthApi';
-import { useHistory } from 'react-router-dom'
 import { UnAuthorisedUserHandler, alert } from '../../common/AppCommon';
 
 const User = () => {
@@ -17,7 +16,7 @@ const User = () => {
     const [header, setHeader] = useState('Add User');
     const [isPending, setIsPending] = useState(false);
     const [refreshTable, setRefreshTable] = useState(true);
-    const history = useHistory();
+    const navigate = useNavigate();
     const dispatch = useDispatch();
 
     //Retrive users
@@ -29,9 +28,9 @@ const User = () => {
             getUsers().then((res) => {
                 if (res.status != 200) {
 
-                    if (res.status == 401) { UnAuthorisedUserHandler(dispatch, history); return; }
+                    if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
 
-                    alert(res.message)
+                    alert(SWAL_TITLE_ERROR, SWAL_TITLE_ERROR, res.message)
                     return;
                 }
 
@@ -84,7 +83,7 @@ const User = () => {
                     setIsPending(false);
 
                     if (res.status != 200) {
-                        if (res.status == 401) { UnAuthorisedUserHandler(dispatch, history); return; }
+                        if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
 
                         alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, res.message)
                         return;
@@ -101,7 +100,7 @@ const User = () => {
                     setIsPending(false);
 
                     if (res.status != 200) {
-                        if (res.status == 401) { UnAuthorisedUserHandler(dispatch, history); return; }
+                        if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
 
                         alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, res.message)
                         return;
@@ -198,17 +197,17 @@ const User = () => {
         deleteUser(obj.userId).then((res) => {
 
             if (res.status != 200) {
-                if (res.status == 401) { UnAuthorisedUserHandler(dispatch, history); return; }
+                if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
 
                 alert(res.message)
                 return;
             }
 
-            alert(SWAL_TITLE_SUCCESS, SWAL_TITLE_SUCCESS, 'User deleted successfully');
+            alert(SWAL_TYPE_SUCCESS, SWAL_TITLE_SUCCESS, 'User deleted successfully');
 
             setRefreshTable(true);
 
-        }).catch((err) => alert(SWAL_TITLE_ERROR, SWAL_TITLE_ERROR, err.message))
+        }).catch((err) => alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, err.message))
     }
 
     const resetPasswordClick = (e, user) => {
@@ -220,15 +219,15 @@ const User = () => {
         forgotPassword(obj).then((res) => {
 
             if (res.status != 200) {
-                if (res.status == 401) { UnAuthorisedUserHandler(dispatch, history); return; }
+                if (res.status == 401) { UnAuthorisedUserHandler(dispatch, navigate); return; }
 
                 alert(res.message)
                 return;
             }
 
-            alert(SWAL_TITLE_SUCCESS, SWAL_TITLE_SUCCESS, 'Password has been reset. Default Password is sent to your regesitered email address.');
+            alert(SWAL_TYPE_SUCCESS, SWAL_TITLE_SUCCESS, 'Password has been reset. Default Password is sent to your regesitered email address.');
 
-        }).catch((err) => alert(SWAL_TITLE_ERROR, SWAL_TITLE_ERROR, err.message))
+        }).catch((err) => alert(SWAL_TYPE_ERROR, SWAL_TITLE_ERROR, err.message))
     }
 
     const resetForm = () => {
@@ -388,13 +387,13 @@ const User = () => {
                                                         <td data-toggle='tooltip' data-placement='bottom' title={user.phone} >{user.phone}</td>
                                                         <td>
 
-                                                            <a href='#' className='btn btn-icon btn-sm btn-primary' data-toggle='tooltip' data-placement='bottom' title='Edit' onClick={(e) => editClick(e, user)}><i class="far fa-edit"></i></a>&nbsp;&nbsp;&nbsp;<a className='btn btn-icon btn-sm btn-danger' href='#' data-toggle='tooltip' data-placement='bottom' title='Delete' onClick={(e) => deleteClick(e, user)}><i class="fas fa-times"></i></a>&nbsp;&nbsp;&nbsp;<a className='btn btn-icon btn-sm btn-secondary' href='#' data-toggle='tooltip' data-placement='bottom' title='Reset Password' onClick={(e) => resetPasswordClick(e, user)}><i class="fa fa-key"></i></a>
+                                                            <a href='#' className='btn btn-icon btn-sm btn-primary' data-toggle='tooltip' data-placement='bottom' title='Edit' onClick={(e) => editClick(e, user)}><i className='far fa-edit'></i></a>&nbsp;&nbsp;&nbsp;<a className='btn btn-icon btn-sm btn-danger' href='#' data-toggle='tooltip' data-placement='bottom' title='Delete' onClick={(e) => deleteClick(e, user)}><i className='fas fa-times'></i></a>&nbsp;&nbsp;&nbsp;<a className='btn btn-icon btn-sm btn-secondary' href='#' data-toggle='tooltip' data-placement='bottom' title='Reset Password' onClick={(e) => resetPasswordClick(e, user)}><i className='fa fa-key'></i></a>
                                                         </td>
                                                     </tr>
                                                 ))}
                                                 {users.length == 0 &&
                                                     <tr scope='row'>
-                                                        <td colSpan='9' style={{ textAlign: 'center' }}>Please wait... We retriving the users</td>
+                                                        <td colSpan='8' style={{ textAlign: 'center' }}>Please wait... We retriving the records</td>
                                                     </tr>
                                                 }
                                             </tbody>
